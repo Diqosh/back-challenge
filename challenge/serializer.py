@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 from .models import CustomUser, Company, Feedback
 from datetime import datetime
@@ -8,7 +9,8 @@ def getAge(birth_date):
     currentMonth = datetime.now().month
     currentYear = datetime.now().year
     birthYear, birthMonth, birthDay = str(birth_date).split('-')
-
+    print(birthYear, birthMonth, birthDay)
+    print(currentYear, currentMonth, currentDay)
     return (currentYear - int(birthYear)) * 365 + (currentMonth - int(birthMonth)) * 30 + (currentDay - int(birthDay)) / 365
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -47,6 +49,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         print(age)
         return attrs
 
+
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -62,8 +65,6 @@ class CompanySerializer(serializers.ModelSerializer):
         """
         Update and return an existing `Company` instance, given the validated data.
         """
-        print('instance', instance)
-        print('validated_data', validated_data)
         instance.name = validated_data.get('name', instance.name)
         instance.company_type = validated_data.get('company_type', instance.company_type)
         instance.date_creation = validated_data.get('date_creation', instance.date_creation)
