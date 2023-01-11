@@ -4,23 +4,35 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from challenge.models import CustomUser, Company
-from challenge.serializer import CustomUserSerializer, CompanySerializer
+from challenge.serializer import CustomUserSerializer, CompanySerializer, RegistrationSerializer
 
 
-@extend_schema(methods=['GET', 'POST'], request=CustomUserSerializer, responses=CustomUserSerializer)
-@api_view(('GET', 'POST'))
+@extend_schema(methods=['GET', ], responses=CustomUserSerializer)
+@api_view(('GET', ))
 def user_list(request):
     if request.method == "GET":
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data)
 
-    elif request.method == "POST":
-        serializer = CustomUserSerializer(data=request.data)
+
+@extend_schema(methods=['GET', 'POST'], request=RegistrationSerializer, responses=RegistrationSerializer)
+@api_view(('POST',))
+def registration_view(request):
+    if request.method == 'POST':
+        serializer = RegistrationSerializer(data=request.data)
+        data = {}
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+            account = serializer.save()
+            data['response'] = "successfully registered a new user."
+            data['email'] = account.email
+            data['username'] = account.username
+            data['birth_date'] = account.birth_date
+            data['first_name'] = account.first_name
+            data['last_name'] = account.last_name
+        else:
+            data = serializer.errors
+        return Response(data)
 
 
 @api_view(('GET',))

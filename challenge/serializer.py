@@ -16,7 +16,12 @@ def getAge(birth_date):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'birth_date')
+        fields = (
+            'id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser',
+            'birth_date')
+        exrta_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def create(self, validated_data):
         """
@@ -50,6 +55,31 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class RegistrationSerializer(CustomUserSerializer):
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            'username', 'email', 'password', 'password2', 'first_name', 'last_name', 'birth_date')
+        exrta_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def save(self):
+        user = CustomUser(
+            username=self.validated_data['username'],
+            email=self.validated_data['email'],
+        )
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+        if password != password2:
+            raise serializers.ValidationError({'password': 'Passwords must match.'})
+        user.set_password(password)
+        user.save()
+        return user
+
+
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -74,12 +104,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
-        attrs1 = super().validate(attrs)
         errors = {}
-
-        # if attrs['time_start'] >= attrs['time_end']:
-        #     errors['time_start'] = ['незя']
-
         if errors:
             raise errors
 
