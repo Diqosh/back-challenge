@@ -9,9 +9,9 @@ def getAge(birth_date):
     currentMonth = datetime.now().month
     currentYear = datetime.now().year
     birthYear, birthMonth, birthDay = str(birth_date).split('-')
-    print(birthYear, birthMonth, birthDay)
-    print(currentYear, currentMonth, currentDay)
-    return (currentYear - int(birthYear)) * 365 + (currentMonth - int(birthMonth)) * 30 + (currentDay - int(birthDay)) / 365
+    return ((currentYear - int(birthYear)) * 365 + (currentMonth - int(birthMonth)) * 30 + (
+            currentDay - int(birthDay))) // 365
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,9 +44,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         age = getAge(attrs['birth_date'])
         if not attrs['birth_date']:
-
             raise serializers.ValidationError("there is must be a birth date")
-        print(age)
+        if age < 16:
+            raise serializers.ValidationError("ебалай расти давай")
         return attrs
 
 
