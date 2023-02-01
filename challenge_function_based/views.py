@@ -1,6 +1,6 @@
-from django.shortcuts import render
 from drf_spectacular.utils import extend_schema
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from challenge.models import CustomUser, Company
@@ -8,7 +8,7 @@ from challenge.serializer import CustomUserSerializer, CompanySerializer, Regist
 
 
 @extend_schema(methods=['GET', ], responses=CustomUserSerializer)
-@api_view(('GET', ))
+@api_view(('GET',))
 def user_list(request):
     if request.method == "GET":
         users = CustomUser.objects.all()
@@ -16,7 +16,7 @@ def user_list(request):
         return Response(serializer.data)
 
 
-@extend_schema(methods=['GET', 'POST'], request=RegistrationSerializer, responses=RegistrationSerializer)
+@extend_schema(methods=['POST', ], request=RegistrationSerializer, responses=RegistrationSerializer)
 @api_view(('POST',))
 def registration_view(request):
     if request.method == 'POST':
@@ -35,19 +35,8 @@ def registration_view(request):
         return Response(data)
 
 
-@api_view(('GET',))
-def user_detail(request, pk):
-    try:
-        user = CustomUser.objects.get(pk=pk)
-    except CustomUser.DoesNotExist:
-        return Response(status=404)
-
-    if request.method == "GET":
-        serializer = CustomUserSerializer(user)
-        return Response(serializer.data)
-
-
 @extend_schema(methods=['POST'], request=CompanySerializer, responses=CompanySerializer)
+@permission_classes([IsAuthenticated])
 @api_view(('GET', 'POST'))
 def company_list(request):
     if request.method == "GET":
@@ -61,6 +50,19 @@ def company_list(request):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
+
+@api_view(('GET',))
+def user_detail(request, pk):
+    try:
+        user = CustomUser.objects.get(pk=pk)
+    except CustomUser.DoesNotExist:
+        return Response(status=404)
+
+    if request.method == "GET":
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data)
+
 
 
 @api_view(('GET', 'PUT', 'DELETE'))
